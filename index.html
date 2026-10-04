@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>LKM 2_Kelompok_Kelas</title>
+<style>
+:root{
+  --bg:#F2F6F3; --card:#FFFFFF; --ink:#1E2B2E; --muted:#556669;
+  --teal:#17595A; --teal2:#1F7A74; --tealSoft:#E3F1EE;
+  --amber:#E8A317; --amberSoft:#FFF4D1; --amberDeep:#8A5A00;
+  --brown:#6B4423; --brownSoft:#F1E6DA;
+  --line:#C3D2CB; --danger:#B3261E; --leaf:#5FAE6B;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;overflow-x:hidden}
+.wrap{max-width:880px;margin:0 auto;padding:0 14px}
+h1,h2,h3,p,ul,ol{margin:0}
+h3{font-size:1.05rem;margin:22px 0 8px;color:var(--teal);break-after:avoid}
+p{margin:0 0 10px}
+code{background:var(--tealSoft);padding:1px 6px;border-radius:5px;font-size:.9em;overflow-wrap:anywhere}
+
+/* ---------- Meteran ---------- */
+.meter{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.96);border-bottom:2px solid var(--tealSoft);box-shadow:0 2px 10px rgba(23,89,90,.08)}
+.meter-in{display:flex;align-items:center;gap:12px;padding-top:8px;padding-bottom:8px}
+.plant{width:54px;height:60px;flex:none}
+.plant [data-s]{opacity:0;transition:opacity .45s ease}
+.plant [data-s].on{opacity:1}
+.meter-txt{flex:1;min-width:0}
+.meter-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.meter-top strong{font-size:1.35rem;color:var(--teal);line-height:1.1}
+.meter-top span{font-size:.88rem;color:var(--muted)}
+.track{height:10px;border-radius:99px;background:#DCE8E2;overflow:hidden;margin:5px 0 3px}
+.fill{height:100%;width:0;background:var(--leaf);border-radius:99px;transition:width .4s ease}
+.meter-sub{display:flex;justify-content:space-between;gap:8px;font-size:.82rem;color:var(--muted);flex-wrap:wrap}
+
+/* ---------- Hero ---------- */
+.hero{background:var(--teal);color:#fff;border-radius:16px;margin:16px 0;padding:20px 20px 18px;display:flex;align-items:center;gap:16px}
+.hero-t{flex:1;min-width:0}
+.hero h1{font-size:1.5rem;line-height:1.2;letter-spacing:.2px}
+.hero .sub{margin:6px 0 0;font-size:1.02rem;font-weight:600}
+.hero .meta{margin:10px 0 0;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.93rem;opacity:.95}
+.hero svg{width:112px;height:auto;flex:none}
+
+/* ---------- Kartu & bagian ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:0 0 16px;overflow:hidden}
+.card>.body{padding:6px 18px 18px}
+.band{background:var(--teal2);color:#fff;font-size:1.05rem;line-height:1.3;padding:13px 18px;font-weight:700}
+.band.id{background:var(--teal)}
+.read{font-weight:600;margin:16px 0 10px}
+.case{background:var(--amberSoft);border-left:6px solid var(--amber);border-radius:8px;padding:12px 16px;margin:0 0 6px}
+.case h3{margin:0 0 6px;color:var(--amberDeep)}
+.case p{font-style:italic;margin:0}
+.safety{background:var(--brownSoft);border-left:6px solid var(--brown);border-radius:8px;padding:10px 14px;margin-top:14px}
+ul.plain{padding-left:20px}
+ul.plain li{margin:3px 0}
+ol.qlist{padding-left:22px}
+ol.qlist>li{margin:0 0 16px;padding-left:4px}
+.q{font-weight:600;margin:0 0 6px}
+.q-i{font-style:italic}
+
+/* ---------- Kolom jawaban (div contenteditable, tinggi otomatis) ---------- */
+.field{display:block;width:100%;min-height:2.9em;height:auto;overflow:visible;
+  white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;
+  border:1.5px solid #AFC4BB;border-radius:9px;background:#FBFDFC;padding:9px 12px;
+  font:inherit;font-size:16px;line-height:1.5;color:var(--ink);outline:none;-webkit-user-select:text;user-select:text;cursor:text}
+.field.tall{min-height:7em}
+.field:focus{border-color:var(--teal2);box-shadow:0 0 0 3px rgba(31,122,116,.22);background:#fff}
+.field[data-empty="1"]::before{content:attr(data-ph);color:#8A9B97;pointer-events:none}
+.field.inl{display:inline-block;width:auto;min-width:9ch;max-width:100%;min-height:0;padding:2px 8px;vertical-align:baseline;margin:2px 2px;background:var(--amberSoft);border-color:#E3C26B}
+.hyp{line-height:2.2}
+
+/* ---------- Identitas ---------- */
+.idgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin-top:14px}
+.idgrid label,.lbl{display:block;font-weight:700;font-size:.93rem;margin:0 0 4px}
+.row-btn{display:flex;gap:8px;align-items:flex-start}
+.row-btn .field{flex:1;min-width:0}
+.members{margin-top:16px}
+.member{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
+.member .mlabel{flex:none;width:86px;padding-top:9px;font-weight:600;font-size:.93rem}
+.member .field{flex:1;min-width:0}
+
+/* ---------- Tombol ---------- */
+.btn{appearance:none;-webkit-appearance:none;border:0;border-radius:10px;min-height:44px;padding:10px 16px;font:inherit;font-weight:700;font-size:.95rem;cursor:pointer;background:var(--teal2);color:#fff}
+.btn:hover{filter:brightness(1.08)}
+.btn:focus-visible,.btn-del:focus-visible,.btn-add:focus-visible{outline:3px solid #0B3B3C;outline-offset:2px}
+.btn.amber{background:var(--amber);color:#2B1B00}
+.btn.ghost{background:#fff;color:var(--teal);border:1.5px solid var(--teal2)}
+.btn.danger{background:var(--danger)}
+.btn-add{appearance:none;-webkit-appearance:none;margin-top:10px;min-height:44px;padding:9px 16px;border:1.5px dashed var(--teal2);background:var(--tealSoft);color:var(--teal);border-radius:10px;font:inherit;font-weight:700;cursor:pointer}
+.btn-del{appearance:none;-webkit-appearance:none;min-height:44px;min-width:64px;padding:6px 10px;border:1.5px solid #E2B4B0;background:#FFF1F0;color:var(--danger);border-radius:9px;font:inherit;font-weight:700;font-size:.88rem;cursor:pointer}
+.btn-small{min-height:44px;padding:8px 12px;font-size:.85rem}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.hint{font-size:.9rem;color:var(--muted);margin-top:12px}
+
+/* ---------- Tabel ---------- */
+.tscroll{width:100%}
+table.obs{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:6px}
+table.obs th,table.obs td{border:1px solid var(--line);padding:8px;vertical-align:top;text-align:left;overflow-wrap:anywhere}
+table.obs th{background:var(--tealSoft);color:var(--teal);font-size:.92rem}
+table.obs th.hA{background:var(--amberSoft);color:var(--amberDeep)}
+table.obs th.hB{background:var(--brownSoft);color:var(--brown)}
+table.obs td.asp{font-weight:600;background:#FAFCFB}
+table.obs tr{break-inside:avoid}
+.c-asp{width:21%}.c-a{width:27%}.c-b{width:27%}.c-n{width:17%}.c-x{width:8%}
+.roles .c-r{width:30%}.roles .c-t{width:46%}.roles .c-p{width:24%}
+.tag{display:inline-block;font-size:.82rem;font-weight:700;padding:1px 9px;border-radius:99px;margin-right:6px}
+.tagA{background:var(--amberSoft);color:var(--amberDeep);border:1px solid #E3C26B}
+.tagB{background:var(--brownSoft);color:var(--brown);border:1px solid #CDB59D}
+
+/* ---------- Modal & toast ---------- */
+.ov{position:fixed;inset:0;background:rgba(16,32,34,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:100}
+.ov.open{display:flex}
+.dlg{background:#fff;border-radius:16px;max-width:460px;width:100%;max-height:90vh;overflow:auto;padding:20px}
+.dlg h2{font-size:1.15rem;margin-bottom:8px;color:var(--teal)}
+.dlg ol,.dlg ul{padding-left:20px;margin:8px 0}
+.dlg .actions{justify-content:flex-end}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(20px);background:#17313A;color:#fff;padding:10px 16px;border-radius:99px;font-size:.92rem;opacity:0;pointer-events:none;transition:all .25s;z-index:120;max-width:92vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- Layar kecil: tabel menjadi kartu (hanya di layar, bukan cetak) ---------- */
+@media screen and (max-width:640px){
+  .wrap{padding:0 12px}
+  .hero{padding:16px}
+  .hero svg{width:64px}
+  .hero h1{font-size:1.25rem}
+  .idgrid{grid-template-columns:1fr}
+  .member .mlabel{width:auto;flex:none;padding-top:9px;font-size:.85rem;min-width:62px}
+  .card>.body{padding:4px 14px 16px}
+  table.obs thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  table.obs,table.obs tbody,table.obs tr,table.obs td{display:block;width:100%}
+  table.obs tr{border:1.5px solid var(--line);border-radius:12px;margin:0 0 12px;padding:6px 8px;background:#fff}
+  table.obs td{border:0;padding:6px 2px}
+  table.obs td::before{content:attr(data-label);display:block;font-weight:700;font-size:.84rem;color:var(--teal);margin-bottom:3px}
+  table.obs td.asp{background:none;font-size:1.02rem}
+  table.obs td.asp::before{content:none}
+  table.obs td.aksi:empty{display:none}
+  table.obs td.aksi::before{content:none}
+  table.obs td.aksi .btn-del{width:100%}
+  .roles td.tugas::before{content:"Tugas"}
+}
+
+/* ---------- Cetak: .wrap TIDAK diubah (lebar & max-width sama dengan layar) ---------- */
+@page{size:A4;margin:12mm}
+@media print{
+  html,body{background:#fff}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:11.5pt}
+  .meter,.no-print,.btn,.btn-add,.btn-del,.ov,.toast,.hero svg{display:none!important}
+  .hero{background:#fff;color:#000;border:2px solid var(--teal);border-radius:10px}
+  .hero h1,.hero .sub,.hero .meta{color:#000}
+  .card{break-inside:auto;border-color:#999}
+  .band{break-after:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  h3{break-after:avoid}
+  ol.qlist>li{break-inside:avoid-page}
+  .field{background:#fff;border:1px solid #888;box-shadow:none;overflow:visible;height:auto}
+  .field::before{content:none!important;display:none!important}
+  .field.inl{background:#fff}
+  table.obs{table-layout:fixed}
+  table.obs td::before{content:none}
+  .row-btn,.member{break-inside:avoid}
+}
+@media (prefers-reduced-motion:reduce){
+  .plant [data-s],.fill,.toast{transition:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Meteran Kesehatan Taman -->
+<div class="meter" role="status" aria-live="polite">
+  <div class="wrap meter-in">
+    <svg class="plant" viewBox="0 0 100 110" aria-hidden="true">
+      <path d="M12 100 Q50 84 88 100 Q50 112 12 100Z" fill="#8B6B4A"/>
+      <ellipse data-s="0" cx="50" cy="92" rx="5.5" ry="3.6" fill="#5B3A1E"/>
+      <path data-s="1" d="M50 94 V72" stroke="#3F8F4E" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <g data-s="1" fill="#5FAE6B">
+        <ellipse cx="42" cy="73" rx="8" ry="3.8" transform="rotate(-25 42 73)"/>
+        <ellipse cx="58" cy="73" rx="8" ry="3.8" transform="rotate(25 58 73)"/>
+      </g>
+      <path data-s="2" d="M50 94 V54" stroke="#3F8F4E" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <g data-s="2" fill="#5FAE6B">
+        <ellipse cx="39" cy="72" rx="10" ry="4.2" transform="rotate(-30 39 72)"/>
+        <ellipse cx="61" cy="72" rx="10" ry="4.2" transform="rotate(30 61 72)"/>
+        <ellipse cx="41" cy="58" rx="8.5" ry="3.8" transform="rotate(-35 41 58)"/>
+        <ellipse cx="59" cy="58" rx="8.5" ry="3.8" transform="rotate(35 59 58)"/>
+      </g>
+      <path data-s="3,4" d="M50 94 V38" stroke="#3F8F4E" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <g data-s="3,4" fill="#5FAE6B">
+        <ellipse cx="38" cy="80" rx="11" ry="4.4" transform="rotate(-30 38 80)"/>
+        <ellipse cx="62" cy="80" rx="11" ry="4.4" transform="rotate(30 62 80)"/>
+        <ellipse cx="39" cy="66" rx="10" ry="4.2" transform="rotate(-32 39 66)"/>
+        <ellipse cx="61" cy="66" rx="10" ry="4.2" transform="rotate(32 61 66)"/>
+        <ellipse cx="41" cy="52" rx="8.5" ry="3.8" transform="rotate(-35 41 52)"/>
+        <ellipse cx="59" cy="52" rx="8.5" ry="3.8" transform="rotate(35 59 52)"/>
+      </g>
+      <g data-s="3">
+        <ellipse cx="50" cy="32" rx="6.5" ry="9.5" fill="#7BC47F"/>
+        <path d="M44 34 Q50 24 56 34" fill="none" stroke="#E8A317" stroke-width="2.2" stroke-linecap="round"/>
+      </g>
+      <g data-s="4" transform="translate(50 30)">
+        <g fill="#F6C343" stroke="#D9981A" stroke-width="1">
+          <ellipse cx="0" cy="-12" rx="5.6" ry="10"/>
+          <ellipse cx="0" cy="-12" rx="5.6" ry="10" transform="rotate(45)"/>
+          <ellipse cx="0" cy="-12" rx="5.6" ry="10" transform="rotate(90)"/>
+          <ellipse cx="0" cy="-12" rx="5.6" ry="10" transform="rotate(135)"/>
+          <ellipse cx="0" cy="-12" rx="5.6" ry="10" transform="rotate(180)"/>
+          <ellipse cx="0" cy="-12" rx="5.6" ry="10" transform="rotate(225)"/>
+          <ellipse cx="0" cy="-12" rx="5.6" ry="10" transform="rotate(270)"/>
+          <ellipse cx="0" cy="-12" rx="5.6" ry="10" transform="rotate(315)"/>
+        </g>
+        <circle r="6.5" fill="#6B4423"/>
+      </g>
+    </svg>
+    <div class="meter-txt">
+      <div class="meter-top"><strong id="pct">0%</strong><span id="stageLbl">Meteran Kesehatan Taman</span></div>
+      <div class="track"><div class="fill" id="fill"></div></div>
+      <div class="meter-sub"><span id="ratio">0 dari 0 bagian terisi</span><span id="saveState"></span></div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- Judul -->
+  <header class="hero">
+    <div class="hero-t">
+      <h1>LEMBAR KERJA MURID (LKM)</h1>
+      <p class="sub">Proyek IPAS – Kelas X SMK</p>
+      <p class="meta"><span>Topik: Zat dan Perubahannya</span><span>Model: Problem Based Learning</span></p>
+    </div>
+    <svg viewBox="0 0 120 64" aria-hidden="true">
+      <g transform="translate(34 36)">
+        <path d="M0 -28 C6 -16 18 -6 18 7 A18 18 0 0 1 -18 7 C-18 -6 -6 -16 0 -28Z" fill="#F6C343"/>
+        <ellipse cx="-7" cy="6" rx="3.2" ry="6" fill="#fff" opacity=".6" transform="rotate(18 -7 6)"/>
+      </g>
+      <g transform="translate(86 36)">
+        <path d="M0 -28 C6 -16 18 -6 18 7 A18 18 0 0 1 -18 7 C-18 -6 -6 -16 0 -28Z" fill="#4A2D14"/>
+        <ellipse cx="-7" cy="6" rx="3.2" ry="6" fill="#fff" opacity=".28" transform="rotate(18 -7 6)"/>
+      </g>
+    </svg>
+  </header>
+
+  <!-- Identitas -->
+  <section class="card" aria-label="Identitas kelompok">
+    <div class="band id">Identitas Kelompok</div>
+    <div class="body">
+      <div class="idgrid">
+        <div><label>Nama Ketua:</label><div class="field" data-key="ketua" data-single data-count data-lab="Nama Ketua" data-ph="Nama lengkap ketua"></div></div>
+        <div><label>Kelas:</label><div class="field" data-key="kelas" data-single data-count data-lab="Kelas" data-ph="Contoh: X-2"></div></div>
+        <div><label>Tanggal:</label>
+          <div class="row-btn"><div class="field" data-key="tanggal" data-single data-count data-lab="Tanggal" data-ph="Tanggal pengerjaan"></div>
+          <button type="button" class="btn ghost btn-small no-print" data-act="today">Hari ini</button></div></div>
+        <div><label>Kelompok:</label><div class="field" data-key="kelompok" data-single data-count data-lab="Kelompok" data-ph="Contoh: 3"></div></div>
+      </div>
+      <div class="members">
+        <div class="lbl">Anggota Kelompok:</div>
+        <div id="memberList"></div>
+        <button type="button" class="btn-add no-print" data-act="add-member">+ Tambah Anggota</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- BAGIAN A -->
+  <section class="card">
+    <div class="band">BAGIAN A – FASE 1: Orientasi pada Masalah</div>
+    <div class="body">
+      <p class="read">📖 Baca studi kasus berikut dengan seksama!</p>
+      <div class="case">
+        <h3>STUDI KASUS:</h3>
+        <p>Di sebuah lorong dekat Pantai Losari, Daeng Caca dikenal sebagai penjual gorengan dan pisang epe yang ramai pembeli setiap sore. Untuk menghemat biaya produksi, Daeng Caca terbiasa menggunakan minyak goreng yang sama secara berulang-ulang hingga lebih dari lima kali penggorengan. Beberapa pekan terakhir, sejumlah pelanggan mengeluh bahwa gorengan terasa lebih tengik, warnanya lebih gelap dari biasanya, dan beberapa anak yang membeli pisang epe mengalami sakit perut ringan setelah mengonsumsinya. Kabar ini menyebar di grup WhatsApp warga sekitar dan membuat Ketua RW berencana memanggil petugas keamanan pangan kelurahan untuk meninjau langsung dagangan Daeng Caca. Sebelum petugas datang, Ketua RW meminta bantuan kalian sebagai Tim Konsultan Sains Pangan SMK Negeri 6 Makassar untuk melakukan penyelidikan ilmiah sederhana: membandingkan sifat fisis dan sifat kimia antara minyak goreng baru dan minyak goreng bekas pakai milik Daeng Caca, agar dapat memberikan kesimpulan dan rekomendasi yang tepat dan dapat dipertanggungjawabkan secara ilmiah.</p>
+      </div>
+
+      <h3>A.1 Pertanyaan Orientasi</h3>
+      <ol class="qlist" data-title="A.1 Pertanyaan Orientasi">
+        <li><p class="q q-i">Berdasarkan cerita di atas, perubahan apa yang dialami minyak goreng milik Daeng Caca setelah digunakan berulang kali?</p><div class="field" data-key="a1_1" data-count data-ph="Tulis jawaban kelompokmu…"></div></li>
+        <li><p class="q q-i">Menurut kalian, perubahan tersebut termasuk perubahan pada sifat fisis, sifat kimia, atau keduanya? Jelaskan alasanmu!</p><div class="field" data-key="a1_2" data-count data-ph="Tulis jawaban kelompokmu…"></div></li>
+        <li><p class="q q-i">Bagaimana cara kalian membuktikan secara ilmiah bahwa minyak bekas pakai berbeda kualitasnya dengan minyak baru?</p><div class="field" data-key="a1_3" data-count data-ph="Tulis jawaban kelompokmu…"></div></li>
+        <li><p class="q">Pengukuran apa saja yang dapat kalian lakukan untuk membandingkan kedua jenis minyak tersebut secara objektif?</p><div class="field" data-key="a1_4" data-count data-ph="Tulis jawaban kelompokmu…"></div></li>
+      </ol>
+
+      <h3>A.2 Rumusan Masalah Kelompok:</h3>
+      <p>Bagaimana perbedaan sifat fisis dan sifat kimia antara minyak goreng baru dan minyak goreng bekas pakai? Sifat-sifat apa saja yang dapat diukur untuk membuktikan bahwa minyak goreng bekas tidak layak digunakan lagi?</p>
+
+      <h3>A.3 Hipotesis (Dugaan Awal) Kelompok:</h3>
+      <p class="hyp" id="hyp">Kami menduga bahwa minyak goreng bekas pakai akan menunjukkan perbedaan yang signifikan pada sifat fisisnya (seperti <span class="field inl" data-key="hip1" data-single data-count data-lab="Sifat fisis 1" data-ph="sifat fisis"></span>, <span class="field inl" data-key="hip2" data-single data-count data-lab="Sifat fisis 2" data-ph="sifat fisis"></span>, <span class="field inl" data-key="hip3" data-single data-count data-lab="Sifat fisis 3" data-ph="sifat fisis"></span>) dan sifat kimianya (seperti <span class="field inl" data-key="hip4" data-single data-count data-lab="Sifat kimia 1" data-ph="sifat kimia"></span>, <span class="field inl" data-key="hip5" data-single data-count data-lab="Sifat kimia 2" data-ph="sifat kimia"></span>, <span class="field inl" data-key="hip6" data-single data-count data-lab="Sifat kimia 3" data-ph="sifat kimia"></span>) dibandingkan dengan minyak goreng baru, yang menunjukkan bahwa minyak bekas tersebut sudah tidak layak digunakan.</p>
+    </div>
+  </section>
+
+  <!-- BAGIAN B -->
+  <section class="card">
+    <div class="band">BAGIAN B – FASE 2: Mengorganisasikan Rencana Penyelidikan</div>
+    <div class="body">
+      <h3>B.1 Pembagian Tugas Kelompok</h3>
+      <p>Tentukan peran masing-masing anggota kelompok dalam menjawab pertanyaan penyelidikan di atas. Setiap anggota bertanggung jawab atas pertanyaan yang ditugaskan, namun tetap berdiskusi bersama!</p>
+      <table class="obs roles" id="rolesTable">
+        <thead><tr><th class="c-r">Peran</th><th class="c-t">Tugas</th><th class="c-p">Nama yang bertugas</th></tr></thead>
+        <tbody>
+          <tr><td class="asp" data-label="Peran">Anggota 1 – Penyelidik Sifat Fisis</td><td class="tugas" data-label="Tugas">Mengamati dan mencatat warna, kejernihan/kekeruhan, bau, dan waktu menetes (viskositas sederhana) pada kedua sampel minyak.</td><td data-label="Nama yang bertugas"><div class="field" data-key="role1" data-single data-count data-lab="Nama Anggota 1 – Penyelidik Sifat Fisis" data-ph="Nama"></div></td></tr>
+          <tr><td class="asp" data-label="Peran">Anggota 2 – Penyelidik Sifat Kimia</td><td class="tugas" data-label="Tugas">Melakukan dan mencatat hasil uji tingkat keasaman (pH), uji oksidasi sederhana (betadine/iodin), dan uji kelarutan dalam air pada kedua sampel minyak.</td><td data-label="Nama yang bertugas"><div class="field" data-key="role2" data-single data-count data-lab="Nama Anggota 2 – Penyelidik Sifat Kimia" data-ph="Nama"></div></td></tr>
+          <tr><td class="asp" data-label="Peran">Anggota 3 – Koordinator Data &amp; Presentasi</td><td class="tugas" data-label="Tugas">Mencatat seluruh hasil pengukuran ke dalam tabel data, mendokumentasikan proses (foto/video), dan menyiapkan bahan presentasi/infografis kelompok.</td><td data-label="Nama yang bertugas"><div class="field" data-key="role3" data-single data-count data-lab="Nama Anggota 3 – Koordinator Data dan Presentasi" data-ph="Nama"></div></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Alat dan Bahan yang Diperlukan:</h3>
+      <ul class="plain">
+        <li>Dua sampel minyak goreng dalam wadah berlabel aman (Sampel A: minyak baru, Sampel B: minyak bekas pakai)</li>
+        <li>Gelas bening, sendok/pipet, dan kertas putih sebagai latar pengamatan warna</li>
+        <li>Stopwatch/jam tangan untuk mengukur waktu menetes</li>
+        <li>Kertas indikator pH universal</li>
+        <li>Larutan betadine/iodin secukupnya untuk uji oksidasi sederhana</li>
+        <li>Wadah kecil untuk uji kelarutan, serta air bersih</li>
+        <li>Timbangan dan gelas ukur sederhana (jika tersedia)</li>
+        <li>Alat tulis dan kamera HP untuk dokumentasi</li>
+      </ul>
+      <div class="safety"><strong>Catatan keselamatan:</strong> jangan mencicipi sampel, hindari mencium sampel terlalu dekat, cuci tangan setelah praktik, dan tanyakan kepada guru apabila ragu pada salah satu langkah.</div>
+    </div>
+  </section>
+
+  <!-- BAGIAN C -->
+  <section class="card">
+    <div class="band">BAGIAN C – FASE 3: Membimbing Penyelidikan (Observasi Lapangan)</div>
+    <div class="body">
+      <h3>C.1 Tabel Pengamatan Sifat Fisis</h3>
+      <table class="obs" id="tbl-c1">
+        <thead><tr><th class="c-asp">Aspek yang Diamati</th><th class="c-a hA">Minyak Baru (Sampel A)</th><th class="c-b hB">Minyak Bekas (Sampel B)</th><th class="c-n">Catatan</th><th class="c-x no-print">Aksi</th></tr></thead>
+        <tbody id="c1-body">
+          <tr><td class="asp" data-label="Aspek yang Diamati">Warna</td><td data-label="Minyak Baru (Sampel A)"><div class="field" data-key="c1_warna_a" data-count data-lab="Warna – Minyak Baru" data-ph="Hasil pengamatan"></div></td><td data-label="Minyak Bekas (Sampel B)"><div class="field" data-key="c1_warna_b" data-count data-lab="Warna – Minyak Bekas" data-ph="Hasil pengamatan"></div></td><td data-label="Catatan"><div class="field" data-key="c1_warna_n" data-lab="Warna – Catatan" data-ph="Opsional"></div></td><td class="aksi no-print"></td></tr>
+          <tr><td class="asp" data-label="Aspek yang Diamati">Kejernihan / Kekeruhan</td><td data-label="Minyak Baru (Sampel A)"><div class="field" data-key="c1_jernih_a" data-count data-lab="Kejernihan – Minyak Baru" data-ph="Hasil pengamatan"></div></td><td data-label="Minyak Bekas (Sampel B)"><div class="field" data-key="c1_jernih_b" data-count data-lab="Kejernihan – Minyak Bekas" data-ph="Hasil pengamatan"></div></td><td data-label="Catatan"><div class="field" data-key="c1_jernih_n" data-lab="Kejernihan – Catatan" data-ph="Opsional"></div></td><td class="aksi no-print"></td></tr>
+          <tr><td class="asp" data-label="Aspek yang Diamati">Bau</td><td data-label="Minyak Baru (Sampel A)"><div class="field" data-key="c1_bau_a" data-count data-lab="Bau – Minyak Baru" data-ph="Hasil pengamatan"></div></td><td data-label="Minyak Bekas (Sampel B)"><div class="field" data-key="c1_bau_b" data-count data-lab="Bau – Minyak Bekas" data-ph="Hasil pengamatan"></div></td><td data-label="Catatan"><div class="field" data-key="c1_bau_n" data-lab="Bau – Catatan" data-ph="Opsional"></div></td><td class="aksi no-print"></td></tr>
+          <tr><td class="asp" data-label="Aspek yang Diamati">Waktu Menetes (Viskositas)</td><td data-label="Minyak Baru (Sampel A)"><div class="field" data-key="c1_tetes_a" data-count data-lab="Waktu Menetes – Minyak Baru" data-ph="Hasil pengamatan"></div></td><td data-label="Minyak Bekas (Sampel B)"><div class="field" data-key="c1_tetes_b" data-count data-lab="Waktu Menetes – Minyak Bekas" data-ph="Hasil pengamatan"></div></td><td data-label="Catatan"><div class="field" data-key="c1_tetes_n" data-lab="Waktu Menetes – Catatan" data-ph="Opsional"></div></td><td class="aksi no-print"></td></tr>
+          <tr><td class="asp" data-label="Aspek yang Diamati">Massa Jenis Sederhana</td><td data-label="Minyak Baru (Sampel A)"><div class="field" data-key="c1_massa_a" data-count data-lab="Massa Jenis – Minyak Baru" data-ph="Hasil pengamatan"></div></td><td data-label="Minyak Bekas (Sampel B)"><div class="field" data-key="c1_massa_b" data-count data-lab="Massa Jenis – Minyak Bekas" data-ph="Hasil pengamatan"></div></td><td data-label="Catatan"><div class="field" data-key="c1_massa_n" data-lab="Massa Jenis – Catatan" data-ph="Opsional"></div></td><td class="aksi no-print"></td></tr>
+        </tbody>
+      </table>
+      <button type="button" class="btn-add no-print" data-act="add-row" data-tbl="c1">+ Tambah Baris / Subjek Identifikasi</button>
+
+      <h3>C.2 Tabel Pengamatan Sifat Kimia</h3>
+      <table class="obs" id="tbl-c2">
+        <thead><tr><th class="c-asp">Aspek yang Diuji</th><th class="c-a hA">Minyak Baru (Sampel A)</th><th class="c-b hB">Minyak Bekas (Sampel B)</th><th class="c-n">Catatan</th><th class="c-x no-print">Aksi</th></tr></thead>
+        <tbody id="c2-body">
+          <tr><td class="asp" data-label="Aspek yang Diuji">Tingkat Keasaman (pH)</td><td data-label="Minyak Baru (Sampel A)"><div class="field" data-key="c2_ph_a" data-count data-lab="pH – Minyak Baru" data-ph="Hasil uji"></div></td><td data-label="Minyak Bekas (Sampel B)"><div class="field" data-key="c2_ph_b" data-count data-lab="pH – Minyak Bekas" data-ph="Hasil uji"></div></td><td data-label="Catatan"><div class="field" data-key="c2_ph_n" data-lab="pH – Catatan" data-ph="Opsional"></div></td><td class="aksi no-print"></td></tr>
+          <tr><td class="asp" data-label="Aspek yang Diuji">Perubahan Warna (Uji Oksidasi)</td><td data-label="Minyak Baru (Sampel A)"><div class="field" data-key="c2_oks_a" data-count data-lab="Uji Oksidasi – Minyak Baru" data-ph="Hasil uji"></div></td><td data-label="Minyak Bekas (Sampel B)"><div class="field" data-key="c2_oks_b" data-count data-lab="Uji Oksidasi – Minyak Bekas" data-ph="Hasil uji"></div></td><td data-label="Catatan"><div class="field" data-key="c2_oks_n" data-lab="Uji Oksidasi – Catatan" data-ph="Opsional"></div></td><td class="aksi no-print"></td></tr>
+          <tr><td class="asp" data-label="Aspek yang Diuji">Reaksi dengan Air (Kelarutan)</td><td data-label="Minyak Baru (Sampel A)"><div class="field" data-key="c2_larut_a" data-count data-lab="Kelarutan – Minyak Baru" data-ph="Hasil uji"></div></td><td data-label="Minyak Bekas (Sampel B)"><div class="field" data-key="c2_larut_b" data-count data-lab="Kelarutan – Minyak Bekas" data-ph="Hasil uji"></div></td><td data-label="Catatan"><div class="field" data-key="c2_larut_n" data-lab="Kelarutan – Catatan" data-ph="Opsional"></div></td><td class="aksi no-print"></td></tr>
+        </tbody>
+      </table>
+      <button type="button" class="btn-add no-print" data-act="add-row" data-tbl="c2">+ Tambah Baris / Subjek Identifikasi</button>
+    </div>
+  </section>
+
+  <!-- BAGIAN D -->
+  <section class="card">
+    <div class="band">BAGIAN D – FASE 4: Menyajikan Hasil Karya</div>
+    <div class="body">
+      <p style="margin-top:14px">Susunlah hasil penyelidikan kelompok kalian dalam bentuk laporan singkat atau infografis sederhana yang memuat: tabel data, kesimpulan, dan rekomendasi untuk Daeng Caca.</p>
+      <h3>D.1 Kesimpulan Kelompok</h3>
+      <div class="field tall" data-key="d1" data-count data-lab="D.1 Kesimpulan Kelompok" data-ph="Tulis kesimpulan kelompokmu…"></div>
+      <h3>D.2 Rekomendasi Kelompok untuk Daeng Caca</h3>
+      <div class="field tall" data-key="d2" data-count data-lab="D.2 Rekomendasi Kelompok untuk Daeng Caca" data-ph="Tulis rekomendasi kelompokmu…"></div>
+    </div>
+  </section>
+
+  <!-- BAGIAN E -->
+  <section class="card">
+    <div class="band">BAGIAN E – FASE 5: Evaluasi Proses Pemecahan Masalah</div>
+    <div class="body">
+      <h3>E.1 Evaluasi Kelompok:</h3>
+      <ol class="qlist" data-title="E.1 Evaluasi Kelompok">
+        <li><p class="q">Apakah hasil penyelidikan kelompok kalian sesuai dengan hipotesis awal? Jelaskan!</p><div class="field" data-key="e1_1" data-count data-ph="Tulis jawaban kelompokmu…"></div></li>
+        <li><p class="q">Sifat apa (fisis/kimia) yang paling jelas menunjukkan perbedaan antara minyak baru dan minyak bekas?</p><div class="field" data-key="e1_2" data-count data-ph="Tulis jawaban kelompokmu…"></div></li>
+        <li><p class="q">Apa tantangan yang kalian hadapi selama melakukan penyelidikan ini?</p><div class="field" data-key="e1_3" data-count data-ph="Tulis jawaban kelompokmu…"></div></li>
+        <li><p class="q">Bagaimana hasil penyelidikan ini dapat bermanfaat bagi masyarakat di sekitar kalian?</p><div class="field" data-key="e1_4" data-count data-ph="Tulis jawaban kelompokmu…"></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Simpan & cetak -->
+  <section class="card no-print">
+    <div class="band id">Simpan Hasil Kerja</div>
+    <div class="body">
+      <div class="actions">
+        <button type="button" class="btn" data-act="txt">Unduh .txt</button>
+        <button type="button" class="btn amber" data-act="print">Cetak / Simpan PDF</button>
+        <button type="button" class="btn danger" data-act="reset">Reset Formulir</button>
+      </div>
+      <p class="hint">Jawabanmu tersimpan otomatis di browser ini. Nama file: <code id="fname">LKM 2_Kelompok_Kelas</code></p>
+    </div>
+  </section>
+</main>
+
+<!-- Modal -->
+<div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+  <div class="dlg"><h2 id="dlgTitle"></h2><div id="dlgBody"></div><div class="actions" id="dlgAct"></div></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+var KEY = 'lkm1_zat_minyak_goreng_v1';
+var state = {nid:1, members:[], c1:[], c2:[]};
+var isResetting = false, storageOK = true, saveTimer = null, toastTimer = null;
+
+/* ---------- util ---------- */
+function $(s,r){return (r||document).querySelector(s);}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
+var PLAIN = (function(){try{var d=document.createElement('div');d.setAttribute('contenteditable','plaintext-only');return d.contentEditable==='plaintext-only';}catch(e){return false;}})();
+
+function getVal(f){
+  var t = (f.innerText!=null ? f.innerText : f.textContent) || '';
+  return t.replace(/\u00a0/g,' ').replace(/\r/g,'').replace(/\n+$/,'');
+}
+function isFilled(f){return getVal(f).trim().length>0;}
+function updateEmpty(f){f.setAttribute('data-empty', isFilled(f)?'0':'1');}
+function setVal(f,v){f.textContent = v||''; updateEmpty(f);}
+function byKey(k){return $('.field[data-key="'+k+'"]');}
+function one(k){var f=byKey(k); var v=f?getVal(f).trim().replace(/\s+/g,' '):''; return v||'-';}
+function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show');},2200);}
+
+function labelFor(f){
+  if(f.dataset.lab) return f.dataset.lab;
+  var li=f.closest('li'); if(li){var q=li.querySelector('.q'); if(q) return q.textContent.trim();}
+  var td=f.closest('td');
+  if(td){var tr=td.parentNode, asp=tr.querySelector('td.asp'), lb=td.getAttribute('data-label')||'';
+    return (asp?asp.textContent.trim()+' – ':'')+lb;}
+  return f.dataset.ph||'Kolom isian';
+}
+function prepField(f){
+  f.setAttribute('contenteditable', PLAIN?'plaintext-only':'true');
+  f.setAttribute('role','textbox');
+  if(!f.hasAttribute('data-single')) f.setAttribute('aria-multiline','true');
+  f.setAttribute('spellcheck','true');
+  f.setAttribute('aria-label', labelFor(f));
+  updateEmpty(f);
+}
+
+/* ---------- nama file ---------- */
+function clean(s,def){
+  s=(s||'').replace(/[\\\/:*?"<>|\u0000-\u001f]/g,'-').replace(/\s+/g,' ').trim().replace(/[. ]+$/,'');
+  if(s.length>40) s=s.slice(0,40).trim();
+  return s||def;
+}
+function fileBase(){
+  var g=byKey('kelompok'), k=byKey('kelas');
+  return 'LKM 2_'+clean(g?getVal(g):'','Kelompok')+'_'+clean(k?getVal(k):'','Kelas');
+}
+function updateTitle(){var n=fileBase(); document.title=n; var fn=$('#fname'); if(fn) fn.textContent=n;}
+
+/* ---------- progres ---------- */
+var STAGES=['Benih menunggu ditanam','Tunas mulai muncul','Daun-daun bertumbuh','Kuncup bunga terbentuk','Bunga mekar! Semua bagian terisi'];
+function updateProgress(){
+  var all=$$('.field[data-count]'), total=all.length, done=0;
+  all.forEach(function(f){ if(isFilled(f)) done++; });
+  var pct = total? (done===total?100:Math.min(99,Math.floor(done/total*100))) : 0;
+  var st = pct===0?0 : pct<35?1 : pct<70?2 : pct<100?3 : 4;
+  $('#pct').textContent=pct+'%';
+  $('#fill').style.width=pct+'%';
+  $('#ratio').textContent=done+' dari '+total+' bagian terisi';
+  $('#stageLbl').textContent=STAGES[st];
+  $$('.plant [data-s]').forEach(function(el){
+    var on=el.getAttribute('data-s').split(',').indexOf(String(st))>-1;
+    el.classList.toggle('on',on);
+  });
+  return {pct:pct,done:done,total:total};
+}
+
+/* ---------- simpan otomatis ---------- */
+function collect(){
+  var fields={};
+  $$('.field[data-key]').forEach(function(f){var v=getVal(f); if(v.trim()) fields[f.getAttribute('data-key')]=v;});
+  return {v:1,nid:state.nid,members:state.members.slice(),c1:state.c1.slice(),c2:state.c2.slice(),fields:fields};
+}
+function setSaveState(t){var s=$('#saveState'); if(s) s.textContent=t;}
+function save(){
+  if(isResetting) return;
+  try{
+    localStorage.setItem(KEY, JSON.stringify(collect()));
+    var d=new Date(), p=function(n){return (n<10?'0':'')+n;};
+    setSaveState('Tersimpan otomatis '+p(d.getHours())+':'+p(d.getMinutes()));
+  }catch(e){storageOK=false; setSaveState('Penyimpanan otomatis tidak tersedia');}
+}
+function scheduleSave(){
+  if(isResetting) return;
+  setSaveState('Menyimpan…');
+  clearTimeout(saveTimer); saveTimer=setTimeout(save,300);
+}
+function flushSave(){ if(isResetting) return; clearTimeout(saveTimer); save(); }
+
+/* ---------- anggota ---------- */
+function memberHTML(id){
+  return '<div class="member" data-id="'+id+'"><span class="mlabel"></span>'+
+    '<div class="field" data-single data-count data-key="m_'+id+'" data-ph="Nama anggota"></div>'+
+    '<button type="button" class="btn-del no-print" data-act="del-member" data-id="'+id+'">Hapus</button></div>';
+}
+function relabelMembers(){
+  $$('#memberList .member').forEach(function(m,i){
+    var n='Anggota '+(i+2);
+    $('.mlabel',m).textContent=n;
+    var f=$('.field',m); f.setAttribute('data-lab',n); f.setAttribute('aria-label',n);
+    $('.btn-del',m).setAttribute('aria-label','Hapus '+n);
+  });
+}
+function addMember(id){
+  if(id==null){id=state.nid++;}
+  state.members.push(id);
+  var box=$('#memberList'); box.insertAdjacentHTML('beforeend',memberHTML(id));
+  var f=$('.field[data-key="m_'+id+'"]'); prepField(f);
+  relabelMembers();
+  return f;
+}
+
+/* ---------- baris tabel dinamis ---------- */
+function rowHTML(tbl,id){
+  var lab = tbl==='c1' ? 'Aspek yang Diamati' : 'Aspek yang Diuji';
+  var k = tbl+'_d'+id;
+  return '<tr class="dyn" data-id="'+id+'">'+
+    '<td data-label="'+lab+'"><div class="field" data-single data-count data-key="'+k+'_asp" data-lab="Baris tambahan – '+lab+'" data-ph="Tulis '+lab.toLowerCase()+'"></div></td>'+
+    '<td data-label="Minyak Baru (Sampel A)"><div class="field" data-count data-key="'+k+'_a" data-lab="Baris tambahan – Minyak Baru" data-ph="Hasil"></div></td>'+
+    '<td data-label="Minyak Bekas (Sampel B)"><div class="field" data-count data-key="'+k+'_b" data-lab="Baris tambahan – Minyak Bekas" data-ph="Hasil"></div></td>'+
+    '<td data-label="Catatan"><div class="field" data-key="'+k+'_n" data-lab="Baris tambahan – Catatan" data-ph="Opsional"></div></td>'+
+    '<td class="aksi no-print"><button type="button" class="btn-del" data-act="del-row" data-tbl="'+tbl+'" data-id="'+id+'">Hapus</button></td></tr>';
+}
+function addRow(tbl,id){
+  if(id==null){id=state.nid++;}
+  state[tbl].push(id);
+  var body=$('#'+tbl+'-body'); body.insertAdjacentHTML('beforeend',rowHTML(tbl,id));
+  var tr=body.lastElementChild;
+  $$('.field',tr).forEach(prepField);
+  return $('.field',tr);
+}
+
+/* ---------- modal ---------- */
+var lastFocus=null;
+function openModal(title,bodyHTML,actions){
+  lastFocus=document.activeElement;
+  $('#dlgTitle').textContent=title; $('#dlgBody').innerHTML=bodyHTML;
+  var box=$('#dlgAct'); box.innerHTML='';
+  actions.forEach(function(a){
+    var b=document.createElement('button'); b.type='button'; b.className='btn '+(a.cls||'ghost'); b.textContent=a.label;
+    b.addEventListener('click',function(){closeModal(); if(a.fn) a.fn();});
+    box.appendChild(b);
+  });
+  $('#ov').classList.add('open');
+  var first=box.querySelector('button'); if(first) first.focus();
+}
+function closeModal(){
+  $('#ov').classList.remove('open');
+  if(lastFocus&&lastFocus.focus){try{lastFocus.focus();}catch(e){}}
+}
+function confirmDo(title,msg,yes,fn){
+  openModal(title,'<p>'+msg+'</p>',[{label:'Batal',cls:'ghost'},{label:yes,cls:'danger',fn:fn}]);
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('#ov').classList.contains('open')) closeModal();});
+$('#ov').addEventListener('click',function(e){if(e.target===this) closeModal();});
+
+function rowHasText(el){return $$('.field',el).some(isFilled);}
+function removeMember(id){
+  var el=$('#memberList .member[data-id="'+id+'"]'); if(!el) return;
+  var go=function(){
+    state.members=state.members.filter(function(x){return x!==id;});
+    el.parentNode.removeChild(el); relabelMembers(); updateProgress(); scheduleSave();
+  };
+  if(rowHasText(el)) confirmDo('Hapus anggota?','Nama anggota ini akan dihapus dari daftar.','Ya, hapus',go); else go();
+}
+function removeRow(tbl,id){
+  var el=$('#'+tbl+'-body tr[data-id="'+id+'"]'); if(!el) return;
+  var go=function(){
+    state[tbl]=state[tbl].filter(function(x){return x!==id;});
+    el.parentNode.removeChild(el); updateProgress(); scheduleSave();
+  };
+  if(rowHasText(el)) confirmDo('Hapus baris?','Isi baris ini akan ikut terhapus.','Ya, hapus',go); else go();
+}
+
+/* ---------- unduh .txt ---------- */
+function ind(s){return s? s.split('\n').join('\n     ') : '(belum diisi)';}
+function gv(f){return f?getVal(f).trim():'';}
+function buildTxt(){
+  var L=[], line=new Array(61).join('=');
+  L.push('LEMBAR KERJA MURID (LKM)','Proyek IPAS – Kelas X SMK','Topik: Zat dan Perubahannya | Model: Problem Based Learning',line,'');
+  L.push('IDENTITAS KELOMPOK');
+  L.push('Nama Ketua : '+one('ketua'),'Kelas      : '+one('kelas'),'Tanggal    : '+one('tanggal'),'Kelompok   : '+one('kelompok'));
+  L.push('Anggota:');
+  var ms=$$('#memberList .member');
+  if(!ms.length) L.push('  (tidak ada anggota tambahan)');
+  ms.forEach(function(m){L.push('  '+$('.mlabel',m).textContent+': '+(gv($('.field',m))||'-'));});
+  L.push('',line,'BAGIAN A – FASE 1: Orientasi pada Masalah',line,'');
+  var lists=$$('ol.qlist');
+  function qa(ol){
+    L.push(ol.getAttribute('data-title'));
+    $$('li',ol).forEach(function(li,i){
+      L.push((i+1)+'. '+$('.q',li).textContent.trim());
+      L.push('   Jawaban: '+ind(gv($('.field',li)).replace(/\n/g,'\n')));
+    });
+  }
+  qa(lists[0]);
+  L.push('','A.2 Rumusan Masalah Kelompok:','Bagaimana perbedaan sifat fisis dan sifat kimia antara minyak goreng baru dan minyak goreng bekas pakai? Sifat-sifat apa saja yang dapat diukur untuk membuktikan bahwa minyak goreng bekas tidak layak digunakan lagi?');
+  function h(k){return one(k)==='-'?'........':one(k);}
+  L.push('','A.3 Hipotesis (Dugaan Awal) Kelompok:',
+    'Kami menduga bahwa minyak goreng bekas pakai akan menunjukkan perbedaan yang signifikan pada sifat fisisnya (seperti '+h('hip1')+', '+h('hip2')+', '+h('hip3')+') dan sifat kimianya (seperti '+h('hip4')+', '+h('hip5')+', '+h('hip6')+') dibandingkan dengan minyak goreng baru, yang menunjukkan bahwa minyak bekas tersebut sudah tidak layak digunakan.');
+  L.push('',line,'BAGIAN B – FASE 2: Mengorganisasikan Rencana Penyelidikan',line,'','B.1 Pembagian Tugas Kelompok');
+  $$('#rolesTable tbody tr').forEach(function(tr){
+    L.push('- '+$('td.asp',tr).textContent.trim()+' : '+(gv($('.field',tr))||'-'));
+  });
+  L.push('',line,'BAGIAN C – FASE 3: Membimbing Penyelidikan (Observasi Lapangan)',line);
+  function tableTxt(tbl,title,asp){
+    L.push('',title);
+    $$('#'+tbl+'-body tr').forEach(function(tr,i){
+      var fs=$$('.field',tr), name,a,b,n;
+      if(tr.classList.contains('dyn')){name=gv(fs[0]);a=gv(fs[1]);b=gv(fs[2]);n=gv(fs[3]);}
+      else{name=$('td.asp',tr).textContent.trim();a=gv(fs[0]);b=gv(fs[1]);n=gv(fs[2]);}
+      L.push((i+1)+'. '+asp+': '+(name||'(belum diisi)')+(tr.classList.contains('dyn')?'  [baris tambahan]':''));
+      L.push('   Minyak Baru (Sampel A)  : '+ind(a));
+      L.push('   Minyak Bekas (Sampel B) : '+ind(b));
+      L.push('   Catatan                 : '+(n?ind(n):'-'));
+    });
+  }
+  tableTxt('c1','C.1 Tabel Pengamatan Sifat Fisis','Aspek yang Diamati');
+  tableTxt('c2','C.2 Tabel Pengamatan Sifat Kimia','Aspek yang Diuji');
+  L.push('',line,'BAGIAN D – FASE 4: Menyajikan Hasil Karya',line,'');
+  L.push('D.1 Kesimpulan Kelompok',ind(gv(byKey('d1'))),'','D.2 Rekomendasi Kelompok untuk Daeng Caca',ind(gv(byKey('d2'))));
+  L.push('',line,'BAGIAN E – FASE 5: Evaluasi Proses Pemecahan Masalah',line,'');
+  qa(lists[1]);
+  var p=updateProgress();
+  L.push('',line,'Progres pengerjaan: '+p.pct+'% ('+p.done+' dari '+p.total+' bagian terisi)');
+  return L.join('\r\n');
+}
+function downloadTxt(){
+  flushSave();
+  var blob=new Blob(['\uFEFF'+buildTxt()],{type:'text/plain;charset=utf-8'});
+  var name=fileBase()+'.txt';
+  if(navigator.msSaveBlob){navigator.msSaveBlob(blob,name);return;}
+  var url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download=name; a.style.display='none';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1500);
+  toast('Mengunduh '+name);
+}
+
+/* ---------- cetak ---------- */
+var IS_IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function doPrint(){
+  updateTitle();
+  document.body.classList.add('is-printing');
+  /* Tinggi kolom TIDAK dihitung lewat JS (div height:auto). Jeda 2 frame memberi
+     browser waktu menerapkan layout cetak sebelum dialog dibuka. */
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    try{window.print();}catch(e){showIOSGuide();}
+  });});
+}
+function showIOSGuide(){
+  openModal('Panduan cetak iPhone / iPad',
+    '<p>Jika dialog cetak tidak muncul atau hasilnya tidak sesuai, lakukan langkah berikut di <strong>Safari</strong>:</p>'+
+    '<ol><li>Ketuk tombol <strong>Bagikan</strong> (ikon kotak dengan panah ke atas), lalu pilih <strong>Cetak</strong>.</li>'+
+    '<li>Pada layar pratinjau, <strong>cubit-lebarkan</strong> (pinch-out) halaman pertama untuk mengubahnya menjadi PDF.</li>'+
+    '<li>Ketuk <strong>Bagikan</strong> lagi, lalu <strong>Simpan ke Berkas</strong>.</li></ol>'+
+    '<p>Buka LKM ini langsung di Safari, bukan di dalam aplikasi chat. Cadangan: gunakan <strong>Unduh .txt</strong>.</p>',
+    [{label:'Tutup',cls:'ghost'},{label:'Unduh .txt',cls:'ghost',fn:downloadTxt},{label:'Lanjutkan cetak',cls:'amber',fn:doPrint}]);
+}
+window.addEventListener('beforeprint',updateTitle);
+window.addEventListener('afterprint',function(){document.body.classList.remove('is-printing');});
+
+/* ---------- reset ---------- */
+function resetAll(){
+  isResetting=true; clearTimeout(saveTimer);
+  try{localStorage.removeItem(KEY);}catch(e){}
+  $$('.field').forEach(function(f){f.textContent=''; updateEmpty(f);});
+  $('#memberList').innerHTML=''; $('#c1-body').querySelectorAll('tr.dyn').forEach(function(t){t.parentNode.removeChild(t);});
+  $('#c2-body').querySelectorAll('tr.dyn').forEach(function(t){t.parentNode.removeChild(t);});
+  state={nid:1,members:[],c1:[],c2:[]};
+  addMember(); addMember();
+  updateTitle(); updateProgress(); setSaveState('');
+  isResetting=false;
+  toast('Formulir dikosongkan');
+}
+
+/* ---------- muat ulang data ---------- */
+function load(){
+  var raw=null;
+  try{raw=localStorage.getItem(KEY);}catch(e){storageOK=false;}
+  var data=null;
+  if(raw){try{data=JSON.parse(raw);}catch(e){data=null;}}
+  if(data&&data.v===1){
+    var ints=function(a){return (Array.isArray(a)?a:[]).filter(function(x){return typeof x==='number'&&isFinite(x);});};
+    state.nid=Math.max(1,parseInt(data.nid,10)||1);
+    ints(data.members).forEach(function(id){addMember(id);});
+    ints(data.c1).forEach(function(id){addRow('c1',id);});
+    ints(data.c2).forEach(function(id){addRow('c2',id);});
+    var all=ints(data.members).concat(ints(data.c1),ints(data.c2));
+    all.forEach(function(x){if(x>=state.nid) state.nid=x+1;});
+    var fl=data.fields||{};
+    $$('.field[data-key]').forEach(function(f){var v=fl[f.getAttribute('data-key')]; if(typeof v==='string') setVal(f,v);});
+    setSaveState('Data tersimpan dipulihkan');
+  }else{
+    addMember(); addMember();
+    if(!storageOK) setSaveState('Penyimpanan otomatis tidak tersedia');
+  }
+}
+
+/* ---------- event ---------- */
+document.addEventListener('input',function(e){
+  var f=e.target.closest&&e.target.closest('.field'); if(!f) return;
+  updateEmpty(f);
+  var k=f.getAttribute('data-key');
+  if(k==='kelompok'||k==='kelas') updateTitle();
+  updateProgress(); scheduleSave();
+});
+document.addEventListener('keydown',function(e){
+  var f=e.target.closest&&e.target.closest('.field'); if(!f) return;
+  if(e.key==='Enter'&&f.hasAttribute('data-single')){e.preventDefault();}
+});
+document.addEventListener('paste',function(e){
+  var f=e.target.closest&&e.target.closest('.field'); if(!f) return;
+  var cd=e.clipboardData||window.clipboardData; if(!cd) return;
+  e.preventDefault();
+  var t=cd.getData('text/plain')||cd.getData('Text')||'';
+  t=t.replace(/\r/g,''); if(f.hasAttribute('data-single')) t=t.replace(/\s*\n\s*/g,' ');
+  document.execCommand('insertText',false,t);
+});
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('[data-act]'); if(!b) return;
+  var act=b.getAttribute('data-act'), id=parseInt(b.getAttribute('data-id'),10), tbl=b.getAttribute('data-tbl');
+  if(act==='add-member'){var f=addMember(); updateProgress(); scheduleSave(); f.focus();}
+  else if(act==='del-member'){removeMember(id);}
+  else if(act==='add-row'){var g=addRow(tbl); updateProgress(); scheduleSave(); g.focus();}
+  else if(act==='del-row'){removeRow(tbl,id);}
+  else if(act==='today'){
+    var M=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'], d=new Date();
+    var f2=byKey('tanggal'); setVal(f2,d.getDate()+' '+M[d.getMonth()]+' '+d.getFullYear());
+    updateProgress(); scheduleSave();
+  }
+  else if(act==='txt'){downloadTxt();}
+  else if(act==='print'){ if(IS_IOS) showIOSGuide(); else doPrint(); }
+  else if(act==='reset'){
+    confirmDo('Kosongkan seluruh formulir?','Semua isian, anggota tambahan, baris tabel tambahan, dan data yang tersimpan di browser ini akan dihapus. Tindakan ini tidak dapat dibatalkan.','Ya, hapus semua',resetAll);
+  }
+});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden') flushSave();});
+window.addEventListener('pagehide',flushSave);
+
+/* ---------- mulai ---------- */
+$$('.field').forEach(prepField);
+load();
+updateTitle();
+updateProgress();
+})();
+</script>
+</body>
+</html>
